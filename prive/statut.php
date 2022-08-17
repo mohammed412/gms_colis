@@ -1,3 +1,14 @@
+
+<?php
+
+session_start();
+if ($_SESSION['user']) {
+    header("Location:login.php");
+    exit();
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <?php require('partials/head.php')?>

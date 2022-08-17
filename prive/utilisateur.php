@@ -1,4 +1,15 @@
 <?php
+
+session_start();
+if (!$_SESSION['user']) {
+    header("Location:../login.php");
+    exit();
+}
+
+use App\URLHelper;
+
+require '../vendor/autoload.php';
+
     require('../db/connection.php');
 
     // if(!isset($_SESSION['user'])){
@@ -7,35 +18,87 @@
     // }
 
     //Delete
+    
     if(isset($_GET['id'])){
+    $query = $con->prepare("SELECT photo FROM utilisateur WHERE id_utilisateur = :ID");
+    if($query->execute()){
+        $utilisateur = $query->fetch(PDO::FETCH_OBJ);
+        unlink("user_images/".$utilisateur->photo);
+    }
     $query = $con->prepare("DELETE FROM utilisateur WHERE id_utilisateur = :ID");
     if ($query->execute(["ID"=>$_GET['id']])) {
         header("Location:utilisateur.php", true);
+        exit();
     }
 }
 
     //pagination
+define("PER_PAGE", 20);
 
-    if(isset($_POST['cree'])){
-        $query = $con->prepare("INSERT INTO utilisateur (id_utilisateur) values (default)");
-        if($query->execute()){
-            $id = $con->lastInsertId();
-            header("Location:utilisateur-edit.php?id=".$id);
-        }
+$query = $con->prepare("SELECT COUNT(id_utilisateur) as count FROM utilisateur");
+
+$query->execute();
+
+$usersCount = (int) $query->fetch(PDO::FETCH_OBJ)->count;
+
+$sortable  = [ 'nom', 'prenom', 'adress_mail'];
+
+
+$stm = "SELECT * FROM utilisateur";
+$params = [];
+
+
+// if(!empty($_GET['ville'])){
+//     $stm .= " WHERE city LIKE  :VL";
+//     $params["VL"] = '%' .$_GET['ville']. '%';
+    
+// }
+
+//Organisation
+
+if(!empty($_GET['sort']) && in_array($_GET['sort'], $sortable)){
+    $dir = $_GET['dir'] ?? "asc";
+    if(!in_array($dir, ['asc', 'des'])){
+        $dir = 'asc';
     }
+    $stm .= "ORDER BY ";
+}
+
+if(isset($_GET['search']) && !empty($_GET['textSearch'])){
+    $stm .= " WHERE ".$_GET['field']." = :text";
+    $query = $con->prepare("SELECT COUNT(id_utilisateur) as count FROM utilisateur  WHERE ".$_GET['field']." = :text");
+    if($query->execute(["text"=>$_GET['textSearch']]))
+        $usersCount = $query->fetch(PDO::FETCH_OBJ)->count;
+    $params["text"] = $_GET["textSearch"];
+}
+
+//Pagination
+$page = (int)($_GET['p'] ?? 1);
+
+$offset = ($page - 1) * PER_PAGE;
+
+$searchFields = ["Nom"=>"Nom", "Prenom"=>"prenom", "Adress Email"=>"mail"];
+
+
+$stm .= " LIMIT ".PER_PAGE." OFFSET $offset";
+
+$query = $con->prepare($stm);
+$query->execute($params);
+$utilisateurs = $query->fetchAll(PDO::FETCH_OBJ);
+
+echo $usersCount;
+
+$pages = ceil($usersCount/PER_PAGE);
+echo $pages;
 
     
-    $query = $con->prepare("SELECT id_utilisateur id, Nom, prenom, mail, photo FROM utilisateur");
-    if ($query->execute()) {
-        $utilisateurs = $query->fetchAll(PDO::FETCH_OBJ);
-    }
+    // $query = $con->prepare("SELECT id_utilisateur id, Nom, prenom, mail, photo FROM utilisateur");
+    // if ($query->execute()) {
+    //     $utilisateurs = $query->fetchAll(PDO::FETCH_OBJ);
+    // }
 
     $errors =[];
-    $fields = ['nom', 'tele', 'mail', 'prenom'];
 
-    //users type
-
-    $users_type = ['livreur', 'expediteur', 'inactif'];
 
     //Importe expediteurs 
 
@@ -47,71 +110,13 @@
 
 
         //Ajouter action
-    if (isset($_POST['ajouter'])) {
-        
-        
-        foreach($fields as $field){
-            if(empty($_POST[$field])){
-                $errors[] = $field.' is required';
-            }
-            
+    
+    if(isset($_POST['cree'])){
+        $query = $con->prepare("INSERT INTO utilisateur (id_utilisateur) values (default)");
+        if($query->execute()){
+            $id = $con->lastInsertId();
+            header("Location:utilisateur-edit.php?id=".$id);
         }
-        $stm = "";
-        $params =[];
-        $nom = filter_var($_POST['nom'], FILTER_SANITIZE_STRING);
-        $prenom = filter_var($_POST['prenom'], FILTER_SANITIZE_STRING);
-        $mail = $_POST['mail'];
-        $tele = $_POST['tele'];
-        $userType = $_POST['user_type'];
-        if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = "Email format invalide";
-        }
-        if (!filter_var($tele, FILTER_VALIDATE_INT)) {
-            $errors[] = "Numero de telephon invalide";
-        }
-        if(!isset($_POST['user_type']) || !in_array($userType, $users_type)){
-            $errors[] = "invalide utilisateur type";
-        }
-        else{
-            $params = ["nom"=>$nom, "prenom"=>$prenom, "mail"=>$mail, "tel"=>$tele];
-            switch($userType){
-                case "livreur":
-                    $stm = "INSERT INTO utilisateur(id_utilisateur, Nom, prenom, mail, tel, livreur) VALUES (default, :nom, :prenom, :mail, :tel, :livreur)";
-                    $params["livreur"] = 1;
-                    var_dump($params);
-                    break;
-                case "expediteur":
-                    $count = 0;
-                    $expCount = count($expediteurs);
-                    foreach($expediteurs as $expediteur){
-                        ++$count;
-                        if($expediteur->id == $_POST['expediteur']){
-                            $stm = "INSERT INTO utilisateur(id_utilisateur, Nom, prenom, mail, tel, Expediteur, id_Expediteur) VALUES (default,:nom, :prenom, :mail, :tel, :expediteur, :id_exp)";
-                            $params["expediteur"] = 1;
-                            $params["id_exp"] = $_POST['expiditeur'];
-                            
-                            break;
-                        }
-                        if($count === $expCount){
-                            $errors[]="expediteur invalide";
-                        }
-                    }
-
-            }
-        }
-        if(count($errors) === 0){
-            $query = $con->prepare($stm);
-            if ($query->execute($params)) {
-                header("Location:utilisateur.php");
-            }
-        }
-        else{
-            foreach($errors as $error){
-                echo $error;
-            }
-        }
-
-        
     }
 ?>
 
@@ -120,7 +125,7 @@
 <?php require('partials/head.php') ?>
 <body>
 <?php require('partials/header.php') ?>
-
+    
     <div class="container">
     <main>
          <div class="container-fluid px-4">
@@ -133,6 +138,20 @@
                      <form  method="post">
                          <button type="submit" name="cree" style="margin-top: 10px; margin-bottom: 10px;" class="justify-content-left btn btn-success">Ajouter Utilisateur</button>
                  </form>
+
+
+                 <form class="form-inline" > 
+                 <select style="width: 150px;" name="field" class="form-control mb-2">
+                    <option>Rechercher par</option>
+                    <?php
+                    foreach ($searchFields as $key => $value) {
+                        echo "<option value='$value'>$key</option>";
+                    }
+                    ?>
+                 </select>
+                 <input type="text" class="form-control" id="exampleInputEmail1" name="textSearch" aria-describedby="emailHelp" placeholder="Rechercher">
+                 <button name="search" type="submit" class="btn btn-primary mb-2">Rechercher</button>
+                </form>
                  </div>
 
                  
@@ -160,8 +179,8 @@
                                             echo "<td>$utilisateur->mail</td>";
                                             
                                             echo '<th>
-                                            <a href="utilisateur-edit.php?id='.$utilisateur->id.'" title="Modifier"><img src="../images/icons8-edit-32.png" ></a>
-                                            <a href="utilisateur.php?id='.$utilisateur->id.'" title="Supprimer"><img src="../images/icons8-delete-30.png" alt="DELETE"></a>
+                                            <a href="utilisateur-edit.php?id='.$utilisateur->id_utilisateur.'" title="Modifier"><img src="../images/icons8-edit-32.png" ></a>
+                                            <a href="utilisateur.php?id='.$utilisateur->id_utilisateur.'" title="Supprimer"><img src="../images/icons8-delete-30.png" alt="DELETE"></a>
                                             
                                             </th>';
                                         
@@ -172,6 +191,12 @@
                                     </tbody>
                                     
                                 </table>
+                                <?php if($pages > 1 && $page > 1): ?>
+                                    <a href="utilisateur.php?<?= URLHelper::withParam("p", $page - 1); ?>" class="btn btn-primary">Page Précedent</a>
+                                <?php endif ?>
+                                <?php if($pages > 1 && $page < $pages): ?>
+                                    <a href="utilisateur.php?<?= URLHelper::withParam("p", $page + 1); ?>" class="btn btn-primary">Page Suivant</a>
+                                <?php endif ?>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-if ($_SESSION['user']) {
+if (!$_SESSION['user']) {
     header("Location:login.php");
     exit();
 }
@@ -12,8 +12,8 @@ if ($_SESSION['user']) {
 <html lang="en">
 <?php require('partials/head.php')?>
 <body>
-<?php require('partials/header.php')?>
-    <h1>Welcome in Remarque page</h1>
+    <?php require('partials/header.php')?>
+    <h1>Welcome in Main page</h1>
     <?php require('partials/scripts.php')?>
 </body>
 </html>

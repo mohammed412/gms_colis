@@ -23,7 +23,7 @@ if (isset($_POST['login'])) {
     $query = $con->prepare("SELECT * from utilisateur WHERE mail = :EMAIL ");
     if($query->execute(["EMAIL" => $email])){
       $user = $query->fetch(PDO::FETCH_OBJ);
-      if ($user && password_verify($password, $user->password)) {
+      if ($user && $password == $user->mp) {
         $_SESSION['user'] = $user;
         header('Location:prive/index.php', true);
       }

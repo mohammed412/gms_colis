@@ -1,11 +1,8 @@
 <?php
 require('../db/connection.php');
 
-  
 
-
-
-$id = $_GET["id"];  
+$id = $_GET["id"]; 
 
 
 //search for user
@@ -21,9 +18,6 @@ $errors =[];
 //form fields
 $fields = ['nom', 'tele', 'mail', 'prenom'];
 
-//users type
-
-$users_type = ['livreur', 'expediteur', 'inactif'];
 
 //Importe expediteurs 
 
@@ -62,6 +56,10 @@ if ($query->execute()) {
         $tempname = $_FILES["photo"]["tmp_name"];
         $folder = "./user_images/" . $photoname;
         move_uploaded_file($tempname, $folder);
+        if($utilisateur->photo !== ""){
+          unlink('./user_images/'.$utilisateur->photo);
+          
+        }
     }
     
     
