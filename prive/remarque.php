@@ -76,7 +76,6 @@ $query->execute($params);
 
 
 
-var_dump($params);
 
 $remarques = $query->fetchAll(PDO::FETCH_OBJ);
 

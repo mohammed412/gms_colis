@@ -111,7 +111,6 @@ $query->execute($params);
 
 
 
-var_dump($params);
 
 $utilisateurs = $query->fetchAll(PDO::FETCH_OBJ);
 
@@ -230,7 +229,6 @@ function checkDelete(){
                         </div>
                     </div>
                 </main>
-                <a href="" onclick="script:confirm('Ehllo world')">click</a>
 
 <?php require('partials/scripts.php') ?>
 </body>

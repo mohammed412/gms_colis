@@ -33,7 +33,6 @@
           Paramétrage
           </a>
           <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="colis.php">Colis</a></li>
             <li><a class="dropdown-item" href="utilisateur.php">Utilisateur</a></li>
             <li><a class="dropdown-item" href="expediteur.php">Expediteur</a></li>
             <li><a class="dropdown-item" href="remarque.php">Remarque</a></li>

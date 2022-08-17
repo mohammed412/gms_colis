@@ -9,7 +9,6 @@ $id = $_GET["id"];
 $query = $con->prepare("SELECT * FROM utilisateur WHERE id_utilisateur = :id");
 if($query->execute(['id'=>$id])){
   $utilisateur = $query->fetch(PDO::FETCH_OBJ);
-  var_dump($utilisateur);
 }
 
 // errors array

@@ -76,7 +76,6 @@ $query->execute($params);
 
 
 
-var_dump($params);
 
 $statut = $query->fetchAll(PDO::FETCH_OBJ);
 

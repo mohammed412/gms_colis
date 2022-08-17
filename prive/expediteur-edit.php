@@ -9,7 +9,6 @@ $id = $_GET["id"];
 $query = $con->prepare("SELECT * FROM expediteur WHERE id_Expediteur = :id");
 if($query->execute(['id'=>$id])){
   $expediteur = $query->fetch(PDO::FETCH_OBJ);
-  var_dump($expediteur);
 }
 
 // errors array

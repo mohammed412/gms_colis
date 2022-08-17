@@ -71,7 +71,6 @@ $query->execute($params);
 
 
 
-var_dump($params);
 
 $expediteurs = $query->fetchAll(PDO::FETCH_OBJ);
 
