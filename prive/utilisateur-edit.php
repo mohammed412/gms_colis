@@ -66,9 +66,7 @@ if ($query->execute()) {
     if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         $errors[] = "Email format invalide";
     }
-    if (!filter_var($tele, FILTER_VALIDATE_INT)) {
-        $errors[] = "Numero de telephon invalide";
-    }
+    
     
     
        
