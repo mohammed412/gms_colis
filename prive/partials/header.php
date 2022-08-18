@@ -38,6 +38,7 @@
             <li><a class="dropdown-item" href="remarque.php">Remarque</a></li>
             <li><a class="dropdown-item" href="ville.php">Ville</a></li>
             <li><a class="dropdown-item" href="statut.php">Statut</a></li>
+            <li><a class="dropdown-item" href="statut.php">Statut</a></li>
           </ul>
         </li>
        

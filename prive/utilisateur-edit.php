@@ -48,17 +48,13 @@ if ($query->execute()) {
     $expe = 0;
     $liv = 0;
     $id_expe = 0;
-    $photoname = "";
+    $photoname = $utilisateur;
 
-    if(isset($_FILES['photo'])){
-        $photoname = $_FILES["photo"]["name"];
+    if(isset($_FILES['photo']) && !empty($_FILES['photo']['name'])){
         $tempname = $_FILES["photo"]["tmp_name"];
-        $folder = "./user_images/" . $photoname;
-        move_uploaded_file($tempname, $folder);
-        if($utilisateur->photo !== ""){
-          unlink('./user_images/'.$utilisateur->photo);
-          
-        }
+        
+        $photoname = file_get_contents($tempname); 
+        
     }
     
     
